@@ -9,6 +9,9 @@ class AuthApp(ctk.CTk):
         self.minsize(900, 600)
         self.configure(fg_color="#f4f4f4")
 
+        # Store registered users
+        self.registered_users = {}
+
         # Background image
         try:
             bg = Image.open("background.png").resize((1280, 720))
@@ -80,6 +83,14 @@ class AuthApp(ctk.CTk):
             text_color="#111111"
         )
         self.login_password.pack(pady=(0, 18))
+
+        self.login_error = ctk.CTkLabel(
+            self.login_frame,
+            text="",
+            font=("Arial", 11),
+            text_color="#ff6b6b"
+        )
+        self.login_error.pack(pady=(0, 8))
 
         self.login_button = ctk.CTkButton(
             self.login_frame,
@@ -169,6 +180,14 @@ class AuthApp(ctk.CTk):
         )
         self.register_password.pack(pady=(0, 18))
 
+        self.register_error = ctk.CTkLabel(
+            self.register_frame,
+            text="",
+            font=("Arial", 11),
+            text_color="#ff6b6b"
+        )
+        self.register_error.pack(pady=(0, 8))
+
         self.register_button = ctk.CTkButton(
             self.register_frame,
             text="Register",
@@ -256,49 +275,66 @@ class AuthApp(ctk.CTk):
         self.show_login()
 
     def show_login(self):
+        self.login_error.configure(text="")
         self.register_frame.place_forget()
         self.welcome_frame.place_forget()
         self.login_frame.place(relx=0.5, rely=0.5, anchor="center")
+        self.login_username.delete(0, "end")
+        self.login_password.delete(0, "end")
 
     def show_register(self):
+        self.register_error.configure(text="")
         self.login_frame.place_forget()
         self.welcome_frame.place_forget()
         self.register_frame.place(relx=0.5, rely=0.5, anchor="center")
+        self.register_username.delete(0, "end")
+        self.register_password.delete(0, "end")
 
     def handle_login(self):
-        username = self.login_username.get()
-        if username.strip():
-            self.welcome_username.configure(text=f"@{username}")
-            self.login_frame.place_forget()
-            self.register_frame.place_forget()
-            self.welcome_frame.place(relx=0.5, rely=0.5, anchor="center")
-            self.login_username.delete(0, "end")
-            self.login_password.delete(0, "end")
-        else:
-            # Show error or just proceed
-            self.welcome_username.configure(text="User")
-            self.login_frame.place_forget()
-            self.register_frame.place_forget()
-            self.welcome_frame.place(relx=0.5, rely=0.5, anchor="center")
-            self.login_username.delete(0, "end")
-            self.login_password.delete(0, "end")
+        username = self.login_username.get().strip()
+        password = self.login_password.get().strip()
+
+        # Check if fields are empty
+        if not username or not password:
+            self.login_error.configure(text="Username and password are required")
+            return
+
+        # Check if user is registered
+        if username not in self.registered_users:
+            self.login_error.configure(text="User not registered. Please sign up first")
+            return
+
+        # Check if password is correct
+        if self.registered_users[username] != password:
+            self.login_error.configure(text="Incorrect password")
+            return
+
+        # Login successful
+        self.welcome_username.configure(text=f"@{username}")
+        self.login_frame.place_forget()
+        self.register_frame.place_forget()
+        self.welcome_frame.place(relx=0.5, rely=0.5, anchor="center")
 
     def handle_register(self):
-        username = self.register_username.get()
-        if username.strip():
-            self.welcome_username.configure(text=f"@{username}")
-            self.register_frame.place_forget()
-            self.login_frame.place_forget()
-            self.welcome_frame.place(relx=0.5, rely=0.5, anchor="center")
-            self.register_username.delete(0, "end")
-            self.register_password.delete(0, "end")
-        else:
-            self.welcome_username.configure(text="User")
-            self.register_frame.place_forget()
-            self.login_frame.place_forget()
-            self.welcome_frame.place(relx=0.5, rely=0.5, anchor="center")
-            self.register_username.delete(0, "end")
-            self.register_password.delete(0, "end")
+        username = self.register_username.get().strip()
+        password = self.register_password.get().strip()
+
+        # Check if fields are empty
+        if not username or not password:
+            self.register_error.configure(text="Username and password are required")
+            return
+
+        # Check if user already exists
+        if username in self.registered_users:
+            self.register_error.configure(text="User already exists. Please login")
+            return
+
+        # Register user
+        self.registered_users[username] = password
+        self.register_error.configure(text="")
+        
+        # Go back to login
+        self.show_login()
 
     def logout(self):
         self.show_login()
