@@ -9,20 +9,14 @@ class AuthApp(ctk.CTk):
         self.minsize(900, 600)
         self.configure(fg_color="#f4f4f4")
 
-        # Store registered users
-        self.registered_users = {}
-
-        # Background image
         try:
             bg = Image.open("background.png").resize((1280, 720))
             self.bg_image = ImageTk.PhotoImage(bg)
             self.bg_label = ctk.CTkLabel(self, image=self.bg_image, text="")
             self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-        except Exception as e:
-            print(f"Background image not found: {e}")
+        except Exception:
             self.configure(fg_color="#eaeaea")
 
-        # Centered white form container
         self.form_frame = ctk.CTkFrame(
             self,
             width=440,
@@ -32,7 +26,6 @@ class AuthApp(ctk.CTk):
         )
         self.form_frame.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Login screen
         self.login_frame = ctk.CTkFrame(
             self.form_frame,
             width=360,
@@ -84,14 +77,6 @@ class AuthApp(ctk.CTk):
         )
         self.login_password.pack(pady=(0, 18))
 
-        self.login_error = ctk.CTkLabel(
-            self.login_frame,
-            text="",
-            font=("Arial", 11),
-            text_color="#ff6b6b"
-        )
-        self.login_error.pack(pady=(0, 8))
-
         self.login_button = ctk.CTkButton(
             self.login_frame,
             text="Login",
@@ -101,7 +86,7 @@ class AuthApp(ctk.CTk):
             fg_color="#3a86ff",
             hover_color="#2d72da",
             font=("Arial", 16, "bold"),
-            command=self.handle_login
+            command=self.show_login
         )
         self.login_button.pack(pady=(0, 16))
 
@@ -127,7 +112,6 @@ class AuthApp(ctk.CTk):
         )
         self.to_register_button.pack(pady=(2, 25))
 
-        # Register screen
         self.register_frame = ctk.CTkFrame(
             self.form_frame,
             width=360,
@@ -180,14 +164,6 @@ class AuthApp(ctk.CTk):
         )
         self.register_password.pack(pady=(0, 18))
 
-        self.register_error = ctk.CTkLabel(
-            self.register_frame,
-            text="",
-            font=("Arial", 11),
-            text_color="#ff6b6b"
-        )
-        self.register_error.pack(pady=(0, 8))
-
         self.register_button = ctk.CTkButton(
             self.register_frame,
             text="Register",
@@ -197,7 +173,7 @@ class AuthApp(ctk.CTk):
             fg_color="#3a86ff",
             hover_color="#2d72da",
             font=("Arial", 16, "bold"),
-            command=self.handle_register
+            command=self.show_register
         )
         self.register_button.pack(pady=(0, 16))
 
@@ -223,121 +199,19 @@ class AuthApp(ctk.CTk):
         )
         self.to_login_button.pack(pady=(2, 25))
 
-        # Welcome screen
-        self.welcome_frame = ctk.CTkFrame(
-            self.form_frame,
-            width=360,
-            height=500,
-            fg_color="white",
-            corner_radius=18
-        )
-        self.welcome_frame.pack_propagate(False)
-        self.welcome_frame.place(relx=0.5, rely=0.5, anchor="center")
-        self.welcome_frame.pack_forget()
-
-        self.welcome_title = ctk.CTkLabel(
-            self.welcome_frame,
-            text="Welcome!",
-            font=("Arial", 32, "bold"),
-            text_color="#1a1a1a"
-        )
-        self.welcome_title.pack(pady=(60, 20))
-
-        self.welcome_message = ctk.CTkLabel(
-            self.welcome_frame,
-            text="You have successfully logged in",
-            font=("Arial", 14),
-            text_color="#585858"
-        )
-        self.welcome_message.pack(pady=(0, 10))
-
-        self.welcome_username = ctk.CTkLabel(
-            self.welcome_frame,
-            text="",
-            font=("Arial", 16, "bold"),
-            text_color="#3a86ff"
-        )
-        self.welcome_username.pack(pady=(0, 60))
-
-        self.logout_button = ctk.CTkButton(
-            self.welcome_frame,
-            text="Logout",
-            width=300,
-            height=44,
-            corner_radius=12,
-            fg_color="#ff6b6b",
-            hover_color="#e63946",
-            font=("Arial", 16, "bold"),
-            command=self.logout
-        )
-        self.logout_button.pack(pady=(0, 20))
-
         self.show_login()
 
     def show_login(self):
-        self.login_error.configure(text="")
         self.register_frame.place_forget()
-        self.welcome_frame.place_forget()
         self.login_frame.place(relx=0.5, rely=0.5, anchor="center")
         self.login_username.delete(0, "end")
         self.login_password.delete(0, "end")
 
     def show_register(self):
-        self.register_error.configure(text="")
         self.login_frame.place_forget()
-        self.welcome_frame.place_forget()
         self.register_frame.place(relx=0.5, rely=0.5, anchor="center")
         self.register_username.delete(0, "end")
         self.register_password.delete(0, "end")
-
-    def handle_login(self):
-        username = self.login_username.get().strip()
-        password = self.login_password.get().strip()
-
-        # Check if fields are empty
-        if not username or not password:
-            self.login_error.configure(text="Username and password are required")
-            return
-
-        # Check if user is registered
-        if username not in self.registered_users:
-            self.login_error.configure(text="User not registered. Please sign up first")
-            return
-
-        # Check if password is correct
-        if self.registered_users[username] != password:
-            self.login_error.configure(text="Incorrect password")
-            return
-
-        # Login successful
-        self.welcome_username.configure(text=f"@{username}")
-        self.login_frame.place_forget()
-        self.register_frame.place_forget()
-        self.welcome_frame.place(relx=0.5, rely=0.5, anchor="center")
-
-    def handle_register(self):
-        username = self.register_username.get().strip()
-        password = self.register_password.get().strip()
-
-        # Check if fields are empty
-        if not username or not password:
-            self.register_error.configure(text="Username and password are required")
-            return
-
-        # Check if user already exists
-        if username in self.registered_users:
-            self.register_error.configure(text="User already exists. Please login")
-            return
-
-        # Register user
-        self.registered_users[username] = password
-        self.register_error.configure(text="")
-        
-        # Go back to login
-        self.show_login()
-
-    def logout(self):
-        self.show_login()
 
 
 if __name__ == "__main__":
